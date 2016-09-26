@@ -9,11 +9,11 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import logging
 
-from ceda.tds_ogc_scan.ogc_tds_validation import OgcTdsValidation
+from ceda.tds_ogc_scan.validation import OgcTdsValidation
 
 
 def main():
-    OgcTdsValidation.create_report(uri)
+    OgcTdsValidation.check(uri)
  
    
 if __name__ == '__main__':
