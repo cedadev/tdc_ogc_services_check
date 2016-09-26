@@ -58,7 +58,7 @@ Data server catalogue
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     entry_points={
-        'console_scripts': ['ceda_tds_ogc_scan = ceda.tds_ogc_scan:main',
+        'console_scripts': ['ceda_tds_ogc_scan = ceda.tds_ogc_scan.script:main',
                             ],
         },
     zip_safe = False
