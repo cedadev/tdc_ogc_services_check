@@ -21,7 +21,6 @@ class OgcTdsValidation:
     '''Check TDS catalogue and carry out validation steps on OGC endpoints 
     published
     '''
-    REPORT_FILEPATH = 'wms-error-report.csv'
     
     WMS_GET_CAPABILITIES_QUERY_ARGS = (
         '?service=WMS&version=1.3.0&request=GetCapabilities'
@@ -34,21 +33,7 @@ class OgcTdsValidation:
     )
     
     @classmethod
-    def create_report(cls, uri, report_filepath=None):
-    
-        if report_filepath is None:
-            report_filepath = cls.REPORT_FILEPATH
-    
-        with open(report_filepath, 'w', newline=os.linesep) as report_file:
-            report_writer = csv.writer(report_file, quoting=csv.QUOTE_MINIMAL,
-                                       delimiter='$')
-    
-            cls.check(uri, report_writer=report_writer)
-    
-        report_file.close()
-    
-    @classmethod
-    def check(cls, uri, report_writer=None):
+    def check(cls, uri):
     
         parsed_uri = urlparse(uri)
         thredds_prefix = urlunparse(
@@ -84,12 +69,7 @@ class OgcTdsValidation:
                             cls.WMS_GET_MAP_QUERY_ARGS.format(layer_names[0]))
 
                 cls.check_wms_get_map_resp(wms_get_map_uri)
-                
-#             if report_writer is not None:
-#                 report_writer.writerow([wms_get_capabilities_uri, 
-#                                         get_capabilities_resp.status_code,
-#                                         get_capabilities_stripped_resp])
-    
+                    
             n_wms_uris_tested += 1
 
     
