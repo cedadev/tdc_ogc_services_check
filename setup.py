@@ -21,7 +21,7 @@ except ImportError:
 
 setup(
     name =            	'tds_ogc_services_check',
-    version =         	'0.1.0',
+    version =         	'0.2.2',
     description =     	'Check OGC endpoints from target TDS catalogue',
     long_description = 	'''Utility to test OGC endpoints from a target THREDDS
 Data server catalogue
@@ -58,7 +58,7 @@ Data server catalogue
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     entry_points={
-        'console_scripts': ['ceda_tds_ogc_scan = ceda.tds_ogc_scan:main',
+        'console_scripts': ['ceda_tds_ogc_scan = ceda.tds_ogc_scan.script:main',
                             ],
         },
     zip_safe = False

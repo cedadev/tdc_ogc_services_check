@@ -7,19 +7,14 @@ __copyright__ = "(C) 2016 Science and Technology Facilities Council"
 __license__ = """BSD - See LICENSE file in top-level directory"""
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
+import sys
+import os
 import logging
 
-from ceda.tds_ogc_scan.ogc_tds_validation import OgcTdsValidation
+from ceda.tds_ogc_scan.validation import OgcTdsValidation
 
 
 def main():
-    OgcTdsValidation.create_report(uri)
- 
-   
-if __name__ == '__main__':
-    import sys
-    import os
-
     logging.basicConfig(level=logging.INFO)
     
     # Suppress requests logging
@@ -29,8 +24,13 @@ if __name__ == '__main__':
     
     if len(sys.argv) < 2:
         raise SystemExit('Usage: {} <URI to TDS catalogue path to scan>'.format(
-                                                    os.path.basename(__file__)))
+                                                os.path.basename(sys.argv[0])))
     else:
         uri = sys.argv[1]
 
+    OgcTdsValidation.check(uri)
+
+   
+if __name__ == '__main__':
     main()
+        
