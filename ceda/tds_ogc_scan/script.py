@@ -12,7 +12,7 @@ import logging
 from ceda.tds_ogc_scan.validation import OgcTdsValidation
 
 
-def main():
+def main(uri):
     OgcTdsValidation.check(uri)
  
    
@@ -33,4 +33,4 @@ if __name__ == '__main__':
     else:
         uri = sys.argv[1]
 
-    main()
+    main(uri)

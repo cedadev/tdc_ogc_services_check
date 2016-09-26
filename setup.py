@@ -21,7 +21,7 @@ except ImportError:
 
 setup(
     name =            	'tds_ogc_services_check',
-    version =         	'0.1.0',
+    version =         	'0.2.0',
     description =     	'Check OGC endpoints from target TDS catalogue',
     long_description = 	'''Utility to test OGC endpoints from a target THREDDS
 Data server catalogue
