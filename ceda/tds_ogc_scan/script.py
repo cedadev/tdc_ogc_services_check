@@ -24,7 +24,7 @@ def main():
     
     if len(sys.argv) < 2:
         raise SystemExit('Usage: {} <URI to TDS catalogue path to scan>'.format(
-                                                    os.path.basename(__file__)))
+                                                os.path.basename(sys.argv[0])))
     else:
         uri = sys.argv[1]
 
