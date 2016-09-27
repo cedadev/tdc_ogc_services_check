@@ -5,6 +5,9 @@ developed to support work for the ESA CCI Open Data Portal
 
 Releases
 --------
+ * 0.2.4
+  - Fix for GetCapabilities check - don't try to parse response if gives 500
+    error 
  * 0.2.3
   - added additional summary stats
  * 0.2.2
