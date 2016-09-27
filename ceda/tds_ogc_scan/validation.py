@@ -64,8 +64,12 @@ class OgcTdsValidation:
                                          'namespaces/thredds/InvCatalog/v1.0}'
                                          'catalogRef')
     
+        # Initialise stats
         n_wms_uris_tested = 0
-    
+        n_wms_get_capabilities_ok = 0
+        n_wms_get_map_tested = 0
+        n_wms_get_map_ok = 0
+        
         for catalog_ref_elem in catalog_ref_elems:
             catalog_ref_uri_path = catalog_ref_elem.attrib[
                                         '{http://www.w3.org/1999/xlink}href']
@@ -76,25 +80,36 @@ class OgcTdsValidation:
             wms_get_capabilities_uri = "{}{}".format(wms_uri, 
                                         cls.WMS_GET_CAPABILITIES_QUERY_ARGS)
     
-            layer_names = cls.check_wms_get_capabilities_resp(
+            (wms_get_capabilities_resp_ok, 
+             layer_names) = cls.check_wms_get_capabilities_resp(
                                                     wms_get_capabilities_uri)
-
+            if wms_get_capabilities_resp_ok:
+                n_wms_get_capabilities_ok += 1
+                
             if len(layer_names) > 0:
+                n_wms_get_map_tested += 1
                 wms_get_map_uri = "{}{}".format(wms_uri, 
                             cls.WMS_GET_MAP_QUERY_ARGS.format(layer_names[0]))
 
-                cls.check_wms_get_map_resp(wms_get_map_uri)
+                wms_get_map_resp_ok = cls.check_wms_get_map_resp(
+                                                                wms_get_map_uri)
                 
-#             if report_writer is not None:
-#                 report_writer.writerow([wms_get_capabilities_uri, 
-#                                         get_capabilities_resp.status_code,
-#                                         get_capabilities_stripped_resp])
-    
+                if wms_get_map_resp_ok:
+                    n_wms_get_map_ok += 1
+                    
             n_wms_uris_tested += 1
 
-    
+        # Log stats
         log.info('{} WMS endpoints tested'.format(n_wms_uris_tested))
-
+        log.info('{} WMS GetCapabilities calls succeeded'.format(
+                            n_wms_get_capabilities_ok))
+        log.info('{} WMS GetCapabilities calls failed'.format(
+                            n_wms_uris_tested - n_wms_get_capabilities_ok))
+        log.info('{} WMS GetMap endpoints tested'.format(n_wms_get_map_tested))
+        log.info('{} WMS GetMap calls succeeded'.format(n_wms_get_map_ok))
+        log.info('{} WMS GetMap calls failed'.format(
+                            n_wms_get_map_tested - n_wms_get_map_ok))
+        
     @classmethod
     def get_wms_uri_from_catalog(cls, base_prefix, catalog_uri):
         '''Get catalogue from given URI and extract the first WMS endpoint
@@ -145,7 +160,7 @@ class OgcTdsValidation:
         except ET.ParseError:
             log.exception("GetCapabilities call failed for {}".format(
                           wms_get_capabilities_uri))
-            return []
+            return get_capabilities_resp.ok, []
         
         # Check for layer names
         layer_name_elems = get_capabilities_elem.findall(
@@ -157,11 +172,11 @@ class OgcTdsValidation:
         if len(layer_name_elems) == 0:
             log.error('GetCapabilities yielded no layer names for {}'.format(
                                                     wms_get_capabilities_uri))
-            return []
+            return get_capabilities_resp.ok, []
         else:
             layer_names = [layer_name_elem.text 
                            for layer_name_elem in layer_name_elems]
-            return layer_names
+            return get_capabilities_resp.ok, layer_names
     
     @classmethod
     def check_wms_get_map_resp(cls, wms_get_map_uri):
@@ -176,6 +191,8 @@ class OgcTdsValidation:
             log.error('GetMap failed for: {}: status code={}, '
                       'message={}'.format(wms_get_map_uri,
                                           get_map_resp.status_code, 
-                                          get_map_stripped_resp))    
+                                          get_map_stripped_resp))
+            
+        return get_map_resp.ok    
                   
 
