@@ -153,6 +153,8 @@ class OgcTdsValidation:
                       'message={}'.format(wms_get_capabilities_uri,
                       get_capabilities_resp.status_code, 
                       get_capabilities_stripped_resp))
+            
+            return get_capabilities_resp.ok, []
                 
         try:
             get_capabilities_elem = ET.fromstring(get_capabilities_resp.text)
