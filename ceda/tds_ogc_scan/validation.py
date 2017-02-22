@@ -7,7 +7,8 @@ __license__ = """BSD - See LICENSE file in top-level directory"""
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import os
-from urllib.parse import urlparse, urlunparse
+import six
+from six.moves.urllib.parse import urlparse, urlunparse
 import xml.etree.ElementTree as ET
 import csv
 
