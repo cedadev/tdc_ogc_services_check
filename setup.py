@@ -21,7 +21,7 @@ except ImportError:
 
 setup(
     name =            	'tds_ogc_services_check',
-    version =         	'0.2.4',
+    version =         	'0.2.5',
     description =     	'Check OGC endpoints from target TDS catalogue',
     long_description = 	'''Utility to test OGC endpoints from a target THREDDS
 Data server catalogue
@@ -32,7 +32,7 @@ Data server catalogue
     maintainer_email =  'Philip.Kershaw@stfc.ac.uk',
     url =             	'https://github.com/cedadev/tds_ogc_services_check',
     platforms =         ['POSIX', 'Linux', 'Windows'],
-    install_requires =  ['requests'],
+    install_requires =  ['requests', 'six'],
     license =           __license__,
     test_suite =        '',
     packages =          find_packages(),
@@ -50,6 +50,7 @@ Data server catalogue
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 2',
         'Topic :: Security',
         'Topic :: Internet',
         'Topic :: Scientific/Engineering',
