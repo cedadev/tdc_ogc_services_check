@@ -93,7 +93,7 @@ class OgcTdsValidation:
         elements picked out is normalised so that is at least one less than the
         total number of elements found in the catalogue.
         """
-        catalog_ref_elems = cls.catalog_ref_elems(uri)
+        catalog_ref_elems = cls.parse_thredds_catalog(uri)
 
         # Initialise stats
         n_wms_get_capabilities_uris_tested = 0
