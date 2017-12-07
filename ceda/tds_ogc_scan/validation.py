@@ -18,6 +18,12 @@ import logging
 log = logging.getLogger(__name__)
 
 
+def get_base_uri(uri):
+    '''Extract protocol scheme + DNS name from a URI'''
+    parsed_uri = urlparse(uri)
+    return urlunparse([parsed_uri.scheme, parsed_uri.netloc, '', '', '', ''])
+
+
 class OgcTdsValidationConfigError(Exception):
     """Error with input configuration"""
 
@@ -80,6 +86,23 @@ class OgcTdsValidation:
         return catalog_ref_elems
 
     @classmethod
+    def get_catalog_ref_uris(cls, uri):
+        catalog_ref_elems = cls.parse_thredds_catalog(uri)
+
+        parsed_uri = urlparse(uri)
+        thredds_prefix = urlunparse(
+                        [parsed_uri.scheme, parsed_uri.netloc,
+                         os.path.dirname(parsed_uri.path), '', '', ''])
+
+        for catalog_ref_elem in catalog_ref_elems:
+            catalog_ref_uri_path = catalog_ref_elem.attrib[
+                                        '{http://www.w3.org/1999/xlink}href']
+            catalog_ref_uri = "{}/{}".format(thredds_prefix,
+                                             catalog_ref_uri_path)
+
+            yield catalog_ref_uri
+
+    @classmethod
     def check(cls, uri, catalog_entries_filter=None, rand_sample=None,
               report_writer=None):
         """Iterate through a THREDDS catalogue (given by uri) and test all
@@ -93,7 +116,7 @@ class OgcTdsValidation:
         elements picked out is normalised so that is at least one less than the
         total number of elements found in the catalogue.
         """
-        catalog_ref_elems = cls.parse_thredds_catalog(uri)
+        catalog_ref_uris = tuple(cls.get_catalog_ref_uris(uri))
 
         # Initialise stats
         n_wms_get_capabilities_uris_tested = 0
@@ -112,9 +135,9 @@ class OgcTdsValidation:
 
         # Choose whether to iterate over catalogue elements or pick a random
         # sample
-        n_catalog_ref_elems = len(catalog_ref_elems)
+        n_catalog_ref_uris = len(catalog_ref_uris)
         if rand_sample is None:
-            catalog_ref_indices = range(n_catalog_ref_elems)
+            catalog_ref_indices = range(n_catalog_ref_uris)
         else:
             if catalog_entries_filter is not None:
                 raise OgcTdsValidationConfigError("rand_sample and "
@@ -122,26 +145,14 @@ class OgcTdsValidation:
                                                   " keywords can't be set "
                                                   "together")
 
-            n_sample_elems = min(rand_sample, n_catalog_ref_elems)
-            catalog_ref_indices = random.sample(range(n_catalog_ref_elems),
+            n_sample_elems = min(rand_sample, n_catalog_ref_uris)
+            catalog_ref_indices = random.sample(range(n_catalog_ref_uris),
                                                 n_sample_elems)
             log.info("%d randomly selected elements chosen for testing",
                      n_sample_elems)
 
-        parsed_uri = urlparse(uri)
-        thredds_prefix = urlunparse(
-                        [parsed_uri.scheme, parsed_uri.netloc,
-                         os.path.dirname(parsed_uri.path), '', '', ''])
-        base_prefix = urlunparse(
-                        [parsed_uri.scheme, parsed_uri.netloc, '', '', '', ''])
-
         for i in catalog_ref_indices:
-            catalog_ref_elem = catalog_ref_elems[i]
-
-            catalog_ref_uri_path = catalog_ref_elem.attrib[
-                                        '{http://www.w3.org/1999/xlink}href']
-            catalog_ref_uri = "{}/{}".format(thredds_prefix,
-                                             catalog_ref_uri_path)
+            catalog_ref_uri = catalog_ref_uris[i]
 
             # If filter is set, then only process entries contained in filter
             # list
@@ -153,7 +164,7 @@ class OgcTdsValidation:
             log.info("Testing catalogue reference URI "
                      "{}".format(catalog_ref_uri))
 
-            wms_uri = cls.get_wms_uri_from_catalog(base_prefix, catalog_ref_uri)
+            wms_uri = cls.get_wms_uri_from_catalog(catalog_ref_uri)
             wms_get_capabilities_uri = "{}{}".format(wms_uri,
                                         cls.WMS_GET_CAPABILITIES_QUERY_ARGS)
 
@@ -178,7 +189,7 @@ class OgcTdsValidation:
 
                 n_wms_get_map_uris_tested += 1
 
-            wcs_uri = cls.get_wcs_uri_from_catalog(base_prefix, catalog_ref_uri)
+            wcs_uri = cls.get_wcs_uri_from_catalog(catalog_ref_uri)
             wcs_get_capabilities_uri = "{}{}".format(wcs_uri,
                                         cls.WCS_GET_CAPABILITIES_QUERY_ARGS)
 
@@ -200,7 +211,6 @@ class OgcTdsValidation:
                 n_wcs_describe_coverage_ok += 1
 
             n_wcs_describe_coverage_uris_tested += 1
-
 
         # Log stats
         log.info('{} WMS endpoints tested'.format(
@@ -230,9 +240,11 @@ class OgcTdsValidation:
             n_wcs_describe_coverage_uris_tested - n_wcs_describe_coverage_ok))
 
     @classmethod
-    def get_wms_uri_from_catalog(cls, base_prefix, catalog_uri):
+    def get_wms_uri_from_catalog(cls, catalog_uri):
         '''Get catalogue from given URI and extract the first WMS endpoint
         '''
+        base_prefix = get_base_uri(catalog_uri)
+
         catalog_ref_resp = requests.get(catalog_uri)
         catalog_elem = ET.fromstring(catalog_ref_resp.text)
 
@@ -241,7 +253,7 @@ class OgcTdsValidation:
             "v1.0}service[@serviceType='WMS']")
 
         wms_base_path = wms_service_elem[0].attrib['base']
-        wms_base_uri = "{}{}".format(base_prefix, wms_base_path)
+        wms_base_uri = base_prefix + wms_base_path
 
         # Find WMS endpoint in catalogue
         wms_uri_elems = catalog_elem.findall(
@@ -251,7 +263,7 @@ class OgcTdsValidation:
             "namespaces/thredds/InvCatalog/v1.0}access[@serviceName='wms']")
 
         wms_uri_path = wms_uri_elems[0].attrib['urlPath']
-        wms_uri = "{}{}".format(wms_base_uri, wms_uri_path)
+        wms_uri = wms_base_uri + wms_uri_path
 
         return wms_uri
 
@@ -317,9 +329,11 @@ class OgcTdsValidation:
         return get_map_resp.ok
 
     @classmethod
-    def get_wcs_uri_from_catalog(cls, base_prefix, catalog_uri):
+    def get_wcs_uri_from_catalog(cls, catalog_uri):
         '''Get catalogue from given URI and extract the first WCS endpoint
         '''
+        base_prefix = get_base_uri(catalog_uri)
+
         catalog_ref_resp = requests.get(catalog_uri)
         catalog_elem = ET.fromstring(catalog_ref_resp.text)
 
