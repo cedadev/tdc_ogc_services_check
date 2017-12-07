@@ -3,6 +3,7 @@ Created on 27 Nov 2017
 
 @author: philipkershaw
 '''
+import os
 import unittest
 
 import six
@@ -11,7 +12,10 @@ from ceda.tds_ogc_scan.validation import OgcTdsValidation
 
 
 class TdsOgcServicesCheckTestCase(unittest.TestCase):
-    TDS_CATALOG_URI = 'http://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
+    TDS_CATALOG_URI = (
+        os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI') or
+        'http://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
+    )
 
     def test01_parse_thredds_catalog(self):
         validation = OgcTdsValidation()

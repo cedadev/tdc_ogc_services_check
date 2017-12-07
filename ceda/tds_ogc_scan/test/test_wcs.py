@@ -56,10 +56,9 @@ class WcsGetCapabilitiesUnittestMethodFactory:
 
 
 import os
-catalog_uri = os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI')
-if catalog_uri is None:
-    raise ImportError('CEDA_TDS_OGC_SCAN_CATALOG_URI must be set to target '
-                      'THREDDS catalogue URI')
+catalog_uri = (os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI') or
+    'http://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
+)
 
 unittest_case_factory = ThreddsCatalogUnittestCaseFactory(
                                     catalog_uri,
