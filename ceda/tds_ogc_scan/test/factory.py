@@ -38,10 +38,19 @@ class ThreddsCatalogUnittestCaseFactory:
         generated from unittest_method_factory'''
         _attr = {}
         method_factories = self._gen_unittest_method_factories()
-        for i, wms_unittest_method_factory in enumerate(method_factories,
-                                                        start=1):
-            _attr['test_{:03d}'.format(i)] = wms_unittest_method_factory
+        for i, unittest_method_factory in enumerate(method_factories, start=1):
+            def _test_method(self):
+                '''Wrapper to satisfy
+                unittest.defaultTestLoader.loadTestsFromName which expects
+                unittest methods to be of type types.FunctionType
 
-        TdsCatalogServiceTestCase = type('_TdsCatalogServiceTestCase',
+                It also enables passing an instance of the unittest case class
+                to the test method - 'self' variable
+                '''
+                unittest_method_factory(self)
+
+            _attr['test_{:03d}'.format(i)] = _test_method
+
+        TdsCatalogServiceTestCase = type('TdsCatalogServiceTestCase',
                                          (unittest.TestCase, ), _attr)
         return TdsCatalogServiceTestCase
