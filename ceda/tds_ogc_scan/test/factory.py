@@ -16,40 +16,30 @@ class ThreddsCatalogUnittestCaseFactory:
     catalogue
     '''
     def __init__(self, catalog_uri, unittest_method_factory):
-        '''Provide the URI to the THREDDS catalogue + a class factory which
-        generates the tests needed
+        '''Provide the URI to the THREDDS catalogue + a unit test method
+        factory which generates the tests needed
         '''
         self.catalog_uri = catalog_uri
         self.unittest_method_factory = unittest_method_factory
 
-    def _gen_unittest_method_factories(self):
-        '''Make a list of unittest methods based contents of a THREDDS catalogue
+    def _gen_unittest_methods(self):
+        '''Make a list of unittest methods based on contents of a THREDDS 
+        catalogue
         '''
         catalog_ref_uris = OgcTdsValidation.get_catalog_ref_uris(
                                                             self.catalog_uri)
         for catalog_ref_uri in catalog_ref_uris:
-            unittest_method_factory = self.unittest_method_factory(
-                                                                catalog_ref_uri)
+            unittest_method = self.unittest_method_factory(catalog_ref_uri)
 
-            yield unittest_method_factory
+            yield unittest_method
 
     def  __call__(self):
         '''Generate new unittest case class from a list of unittest methods
         generated from unittest_method_factory'''
         _attr = {}
-        method_factories = self._gen_unittest_method_factories()
-        for i, unittest_method_factory in enumerate(method_factories, start=1):
-            def _test_method(self):
-                '''Wrapper to satisfy
-                unittest.defaultTestLoader.loadTestsFromName which expects
-                unittest methods to be of type types.FunctionType
-
-                It also enables passing an instance of the unittest case class
-                to the test method - 'self' variable
-                '''
-                unittest_method_factory(self)
-
-            _attr['test_{:03d}'.format(i)] = _test_method
+        method_factories = self._gen_unittest_methods()
+        for i, unittest_method in enumerate(method_factories, start=1):
+            _attr['test_{:03d}'.format(i)] = unittest_method
 
         TdsCatalogServiceTestCase = type('TdsCatalogServiceTestCase',
                                          (unittest.TestCase, ), _attr)

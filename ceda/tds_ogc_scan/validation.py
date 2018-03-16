@@ -182,7 +182,7 @@ class OgcTdsValidation:
                             cls.WMS_GET_MAP_QUERY_ARGS.format(layer_names[0]))
 
                 wms_get_map_resp_ok = cls.check_wms_get_map_resp(
-                                                                wms_get_map_uri)
+                                                            wms_get_map_uri)
 
                 if wms_get_map_resp_ok:
                     n_wms_get_map_ok += 1
@@ -318,10 +318,10 @@ class OgcTdsValidation:
         '''
         get_map_resp = requests.get(wms_get_map_uri)
         if get_map_resp.ok:
-            log.info('GetMap OK for: {}'.format(wms_get_map_uri))
+            log.info('WMS GetMap OK for: {}'.format(wms_get_map_uri))
         else:
             get_map_stripped_resp = get_map_resp.text.replace('\r\n', '')
-            log.error('GetMap failed for: {}: status code={}, '
+            log.error('WMS GetMap failed for: {}: status code={}, '
                       'message={}'.format(wms_get_map_uri,
                                           get_map_resp.status_code,
                                           get_map_stripped_resp))

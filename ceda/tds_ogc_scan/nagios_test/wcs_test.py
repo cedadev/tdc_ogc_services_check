@@ -8,8 +8,7 @@ __license__ = """BSD - See LICENSE file in top-level directory"""
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 from ceda.unittest_nagios_wrapper.script import nagios_script
-from ceda.tds_ogc_scan.test.test_wcs import TdsCatalogServiceTestCase
-import ceda.tds_ogc_scan.test.test_wcs
+from ceda.tds_ogc_scan.test.test_wcs import tds_wcs_testcase_factory
 
 
 def main():
@@ -19,8 +18,13 @@ def main():
     SLACK_CHANNEL = 'cci-odp-ops-logging'
     SLACK_USER = 'cci-ops-test'
 
-    nagios_script(TdsCatalogServiceTestCase, check_name='CCI_WCS_TEST',
-                  unittest_module=ceda.tds_ogc_scan.test.test_wcs,
+    import os
+    catalog_uri = (os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI') or
+        'https://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
+    )
+    TdsWcsTestCase = tds_wcs_testcase_factory(catalog_uri)
+    
+    nagios_script(TdsWcsTestCase, check_name='CCI_WCS_TEST',
                   slack_channel=SLACK_CHANNEL, slack_user=SLACK_USER)
 
 
