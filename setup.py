@@ -21,7 +21,7 @@ except ImportError:
 
 setup(
     name =            	'tds_ogc_services_check',
-    version =         	'0.1.0',
+    version =         	'0.3.0',
     description =     	'Check OGC endpoints from target TDS catalogue',
     long_description = 	'''Utility to test OGC endpoints from a target THREDDS
 Data server catalogue
@@ -32,7 +32,8 @@ Data server catalogue
     maintainer_email =  'Philip.Kershaw@stfc.ac.uk',
     url =             	'https://github.com/cedadev/tds_ogc_services_check',
     platforms =         ['POSIX', 'Linux', 'Windows'],
-    install_requires =  ['requests'],
+    install_requires =  ['requests', 'six', 'ceda-unittest-nagios-wrapper',
+                         'cedadev-slack-logging-handler'],
     license =           __license__,
     test_suite =        '',
     packages =          find_packages(),
@@ -50,6 +51,7 @@ Data server catalogue
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 2',
         'Topic :: Security',
         'Topic :: Internet',
         'Topic :: Scientific/Engineering',
@@ -58,8 +60,13 @@ Data server catalogue
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     entry_points={
-        'console_scripts': ['ceda_tds_ogc_scan = ceda.tds_ogc_scan:main',
-                            ],
+        'console_scripts': [
+            'ceda_tds_ogc_scan = ceda.tds_ogc_scan.script:main',
+            'cci_odp_wms_test = '
+            'ceda.tds_ogc_scan.nagios_test.wms_test:main',
+            'cci_odp_wcs_test = '
+            'ceda.tds_ogc_scan.nagios_test.wcs_test:main',
+            ],
         },
     zip_safe = False
 )
