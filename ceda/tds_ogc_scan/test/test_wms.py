@@ -64,16 +64,21 @@ class TdsWmsUnittestMethodFactory:
         log.info('WMS tests passed for {!r}'.format(self.catalog_ref_uri))
 
 
+def tds_wms_testcase_factory(catalog_uri):
+    '''Create TDS WMS TestCase class'''
+    unittest_case_factory = ThreddsCatalogUnittestCaseFactory(
+                                                catalog_uri,
+                                                TdsWmsUnittestMethodFactory)
+    
+    return unittest_case_factory()
+
+
 if __name__ == '__main__':
     import os
     catalog_uri = (
         os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI') or
         'https://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
     )
-    unittest_case_factory = ThreddsCatalogUnittestCaseFactory(
-                                        catalog_uri,
-                                        TdsWmsUnittestMethodFactory)
      
-    TdsWmsTestCase = unittest_case_factory()
-
+    TdsWmsTestCase = tds_wms_testcase_factory(catalog_uri)
     unittest.main()

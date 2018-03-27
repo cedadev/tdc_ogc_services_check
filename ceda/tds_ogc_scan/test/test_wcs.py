@@ -68,8 +68,8 @@ class TdsWcsUnittestMethodFactory:
 def tds_wcs_testcase_factory(catalog_uri):
     '''Create TDS WCS TestCase class'''
     unittest_case_factory = ThreddsCatalogUnittestCaseFactory(
-                                        catalog_uri,
-                                        TdsWcsUnittestMethodFactory)
+                                                catalog_uri,
+                                                TdsWcsUnittestMethodFactory)
     return unittest_case_factory()
     
         
@@ -79,5 +79,5 @@ if __name__ == '__main__':
         'https://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
     )
 
-    TdsWcsTestCase = tds_wcs_testcase_factory()
+    TdsWcsTestCase = tds_wcs_testcase_factory(catalog_uri)
     unittest.main()
