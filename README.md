@@ -5,6 +5,9 @@ developed to support work for the ESA CCI Open Data Portal
 
 Releases
 --------
+ * 0.3.0
+  - Added unit tests for WMS and WCS - takes a catalogue URI as input and
+    creates tests for each endpoint found
  * 0.2.4
   - Fix for GetCapabilities check - don't try to parse response if gives 500
     error 
