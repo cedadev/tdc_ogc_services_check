@@ -4,7 +4,7 @@ WMS endpoints from a THREDDS catalogue
 import unittest
 __author__ = "P J Kershaw"
 __date__ = "06/12/17"
-__copyright__ = "(C) 2017 Science and Technology Facilities Council"
+__copyright__ = "Copyright 2018 United Kingdom Research and Innovation"
 __license__ = """BSD - See LICENSE file in top-level directory"""
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 import six
@@ -20,8 +20,13 @@ logging.basicConfig(level=logging.INFO)
 class TdsWmsUnittestMethodFactory:
     '''Unit test method factory creates a test method for a WMS endpoint from 
     a given THREDDS Catalogue URI'''
+    
     def __init__(self, catalog_ref_uri):
         self.catalog_ref_uri = catalog_ref_uri
+        
+        # Required for unittest.loader.TestLoader
+        if not getattr(self, '__qualname__', None):
+            self.__qualname__ = 'tds_wms_test'
  
     def __call__(self):
         '''This becomes a test method in newly generated unittest case class'''

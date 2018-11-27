@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 """Distribution Utilities setup program for CCI OGC TDS scanning Package
-
-Contrail Project
 """
 __author__ = "P J Kershaw"
 __date__ = "26/09/16"
 __copyright__ = "(C) 2016 Science and Technology Facilities Council"
 __license__ = """BSD - See LICENSE file in top-level directory"""
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id$'
 
 # Bootstrap setuptools if necessary.
 try:
@@ -37,6 +34,11 @@ Data server catalogue
     license =           __license__,
     test_suite =        '',
     packages =          find_packages(),
+    package_data={
+        'ceda/tds_ogc_scan': [
+            'LICENSE',
+        ],
+    },
     classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
@@ -51,7 +53,6 @@ Data server catalogue
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 2',
         'Topic :: Security',
         'Topic :: Internet',
         'Topic :: Scientific/Engineering',
