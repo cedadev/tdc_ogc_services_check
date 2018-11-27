@@ -22,7 +22,11 @@ class TdsWcsUnittestMethodFactory:
     '''Factory class in order to maintain start with WCS URIs'''
     def __init__(self, catalog_ref_uri):
         self.catalog_ref_uri = catalog_ref_uri
-
+        
+        # Required for unittest.loader.TestLoader
+        if not getattr(self, '__qualname__', None):
+            self.__qualname__ = 'tds_wcs_test'
+            
     def __call__(self):
         '''This becomes a test method in newly generated unittest case class'''
         log.info('+'*80) 
