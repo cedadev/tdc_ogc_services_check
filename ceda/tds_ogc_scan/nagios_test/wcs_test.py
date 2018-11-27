@@ -6,7 +6,8 @@ __date__ = "08/12/17"
 __copyright__ = "Copyright 2018 United Kingdom Research and Innovation"
 __license__ = """BSD - See LICENSE file in top-level directory"""
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
-__revision__ = '$Id$'
+import os
+
 from ceda.unittest_nagios_wrapper.script import nagios_script
 from ceda.tds_ogc_scan.test.test_wcs import tds_wcs_testcase_factory
 
@@ -18,7 +19,6 @@ def main():
     SLACK_CHANNEL = 'cci-odp-ops-logging'
     SLACK_USER = 'cci-ops-test'
 
-    import os
     catalog_uri = (os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI') or
         'https://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
     )
