@@ -1,0 +1,9 @@
+/dist/
+/tds_ogc_services_check.egg-info/
+/cci-tds-wms-check.log
+/.project
+/.pydevproject
+ceda/__init__.pyc
+ceda/tds_ogc_scan/__init__.pyc
+ceda/tds_ogc_scan/test/__pycache__/
+ceda/tds_ogc_scan/validation.pyc
