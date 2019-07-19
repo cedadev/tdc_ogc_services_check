@@ -14,7 +14,7 @@ from ceda.tds_ogc_scan.validation import OgcTdsValidation
 class TdsOgcServicesCheckTestCase(unittest.TestCase):
     TDS_CATALOG_URI = (
         os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI') or
-        'http://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
+        'https://cci-odp-data.ceda.ac.uk/thredds/esacci/catalog.xml'
     )
 
     def test01_parse_thredds_catalog(self):

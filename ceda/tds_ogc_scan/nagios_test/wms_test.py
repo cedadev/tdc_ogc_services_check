@@ -10,7 +10,6 @@ import os
 
 from ceda.unittest_nagios_wrapper.script import nagios_script
 from ceda.tds_ogc_scan.test.test_wms import tds_wms_testcase_factory
-import ceda.tds_ogc_scan.test.test_wms
 
 
 def main():
@@ -21,7 +20,7 @@ def main():
     SLACK_USER = 'cci-ops-test'
 
     catalog_uri = (os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI') or
-        'https://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
+        'https://cci-odp-data.ceda.ac.uk/thredds/esacci/catalog.xml'
     )
     TdsWmsTestCase = tds_wms_testcase_factory(catalog_uri)
     

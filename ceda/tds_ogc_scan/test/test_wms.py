@@ -42,7 +42,10 @@ class TdsWmsUnittestMethodFactory:
  
         wms_uri = OgcTdsValidation.get_wms_uri_from_catalog(
                                                         self.catalog_ref_uri)
- 
+        if wms_uri is None:
+            # No WMS endpoint
+            return
+            
         wms_get_capabilities_uri = "{}{}".format(wms_uri,
                 OgcTdsValidation.WMS_GET_CAPABILITIES_QUERY_ARGS)
  

@@ -10,7 +10,6 @@ import os
 import random
 from six.moves.urllib.parse import urlparse, urlunparse
 import xml.etree.ElementTree as ET
-import csv
 
 import requests
 import logging
@@ -24,8 +23,14 @@ def get_base_uri(uri):
     return urlunparse([parsed_uri.scheme, parsed_uri.netloc, '', '', '', ''])
 
 
-class OgcTdsValidationConfigError(Exception):
+class OgcTdsValidationError(Exception):
+    """Error TDS Services and / or Catalogue"""
+    
+class OgcTdsValidationConfigError(OgcTdsValidationError):
     """Error with input configuration"""
+
+class OgcTdsCatalogParseError(OgcTdsValidationError):
+    """Error parsing TDS Catalogue"""
 
 
 class OgcTdsValidation:
@@ -58,33 +63,32 @@ class OgcTdsValidation:
     )
 
     @classmethod
-    def create_report(cls, uri, report_filepath=None):
-
-        if report_filepath is None:
-            report_filepath = cls.REPORT_FILEPATH
-
-        with open(report_filepath, 'w', newline=os.linesep) as report_file:
-            report_writer = csv.writer(report_file, quoting=csv.QUOTE_MINIMAL,
-                                       delimiter='$')
-
-            cls.check(uri, report_writer=report_writer)
-
-        report_file.close()
-
-    @staticmethod
-    def parse_thredds_catalog(uri):
+    def parse_thredds_catalog(cls, uri):
         '''Parse thredds Catalogue XML given by input URI and return list
         Catalogue Reference entries as ElementTree elements
         '''
-        resp = requests.get(uri)
-        root = ET.fromstring(resp.text)
+        root = cls.read_catalog(uri)
 
         catalog_ref_elems = root.findall('{http://www.unidata.ucar.edu/'
                                          'namespaces/thredds/InvCatalog/v1.0}'
                                          'catalogRef')
-
         return catalog_ref_elems
-
+    
+    @classmethod
+    def read_catalog(cls, catalog_uri):
+        """Read catalogue from URI and return as ElementTree Element
+        """
+        catalog_resp = requests.get(catalog_uri)
+        if not catalog_resp.ok:
+            error_msg = "{} response for catalogue {!r}".format(
+                        catalog_resp.status_code, catalog_uri)
+            log.error(error_msg)
+            raise OgcTdsCatalogParseError(error_msg)
+        
+        catalog_elem = ET.fromstring(catalog_resp.text) 
+        
+        return catalog_elem
+    
     @classmethod
     def get_catalog_ref_uris(cls, uri):
         catalog_ref_elems = cls.parse_thredds_catalog(uri)
@@ -103,8 +107,7 @@ class OgcTdsValidation:
             yield catalog_ref_uri
 
     @classmethod
-    def check(cls, uri, catalog_entries_filter=None, rand_sample=None,
-              report_writer=None):
+    def check(cls, uri, catalog_entries_filter=None, rand_sample=None):
         """Iterate through a THREDDS catalogue (given by uri) and test all
         WMS endpoints
 
@@ -119,6 +122,9 @@ class OgcTdsValidation:
         catalog_ref_uris = tuple(cls.get_catalog_ref_uris(uri))
 
         # Initialise stats
+        n_catalog_refs_tested = 0
+        n_catalog_refs_ok = 0
+        
         n_wms_get_capabilities_uris_tested = 0
         n_wms_get_capabilities_ok = 0
         n_wms_get_map_uris_tested = 0
@@ -162,57 +168,82 @@ class OgcTdsValidation:
 
             log.info("+"*46)
             log.info("Testing catalogue reference URI "
-                     "{}".format(catalog_ref_uri))
+                     "{!r}".format(catalog_ref_uri))
 
-            wms_uri = cls.get_wms_uri_from_catalog(catalog_ref_uri)
-            wms_get_capabilities_uri = "{}{}".format(wms_uri,
+            n_catalog_refs_tested += 1
+            
+            # Parse reference catalogue
+            try:
+                catalog_ref_elem = cls.read_catalog(catalog_ref_uri)
+                
+            except OgcTdsCatalogParseError:
+                # Error reading this reference catalogue - skip to the next
+                continue
+            
+            n_catalog_refs_ok += 1
+            
+            # Test for WMS endpoints
+            wms_uri = cls.get_wms_uri_from_catalog(catalog_ref_uri,
+                                                catalog_elem=catalog_ref_elem)                
+            if wms_uri is not None:
+                # WMS URIs found in this catalogue
+                wms_get_capabilities_uri = "{}{}".format(wms_uri,
                                         cls.WMS_GET_CAPABILITIES_QUERY_ARGS)
-
-            (wms_get_capabilities_resp_ok,
-             layer_names) = cls.check_wms_get_capabilities_resp(
+    
+                (wms_get_capabilities_resp_ok,
+                 layer_names) = cls.check_wms_get_capabilities_resp(
                                                     wms_get_capabilities_uri)
-            if wms_get_capabilities_resp_ok:
-                n_wms_get_capabilities_ok += 1
-
-            n_wms_get_capabilities_uris_tested += 1
-
-            if len(layer_names) > 0:
-                n_wms_get_map_uris_tested += 1
-                wms_get_map_uri = "{}{}".format(wms_uri,
+                if wms_get_capabilities_resp_ok:
+                    n_wms_get_capabilities_ok += 1
+    
+                n_wms_get_capabilities_uris_tested += 1
+    
+                if len(layer_names) > 0:
+                    n_wms_get_map_uris_tested += 1
+                    wms_get_map_uri = "{}{}".format(wms_uri,
                             cls.WMS_GET_MAP_QUERY_ARGS.format(layer_names[0]))
-
-                wms_get_map_resp_ok = cls.check_wms_get_map_resp(
+    
+                    wms_get_map_resp_ok = cls.check_wms_get_map_resp(
                                                             wms_get_map_uri)
+    
+                    if wms_get_map_resp_ok:
+                        n_wms_get_map_ok += 1
 
-                if wms_get_map_resp_ok:
-                    n_wms_get_map_ok += 1
-
-                n_wms_get_map_uris_tested += 1
-
-            wcs_uri = cls.get_wcs_uri_from_catalog(catalog_ref_uri)
-            wcs_get_capabilities_uri = "{}{}".format(wcs_uri,
+            # Test for WCS endpoints
+            wcs_uri = cls.get_wcs_uri_from_catalog(catalog_ref_uri,
+                                            catalog_elem=catalog_ref_elem)
+            if wcs_uri is not None:
+                # Catalogue contains a WCS entry
+                wcs_get_capabilities_uri = "{}{}".format(wcs_uri,
                                         cls.WCS_GET_CAPABILITIES_QUERY_ARGS)
-
-            (wcs_get_capabilities_resp_ok,
-             layer_names) = cls.check_wcs_get_capabilities_resp(
+    
+                (wcs_get_capabilities_resp_ok,
+                 layer_names) = cls.check_wcs_get_capabilities_resp(
                                                     wcs_get_capabilities_uri)
-            if wcs_get_capabilities_resp_ok:
-                n_wcs_get_capabilities_ok += 1
-
-            n_wcs_get_capabilities_uris_tested += 1
-
-            wcs_describe_coverage_uri = "{}{}".format(wcs_uri,
+                if wcs_get_capabilities_resp_ok:
+                    n_wcs_get_capabilities_ok += 1
+    
+                n_wcs_get_capabilities_uris_tested += 1
+    
+                wcs_describe_coverage_uri = "{}{}".format(wcs_uri,
                                         cls.WCS_DESCRIBE_COVERAGE_QUERY_ARGS)
-
-            (wcs_describe_coverage_resp_ok,
-             layer_names) = cls.check_wcs_describe_coverage_resp(
-                                         wcs_describe_coverage_uri)
-            if wcs_describe_coverage_resp_ok:
-                n_wcs_describe_coverage_ok += 1
-
-            n_wcs_describe_coverage_uris_tested += 1
+    
+                (wcs_describe_coverage_resp_ok,
+                 layer_names) = cls.check_wcs_describe_coverage_resp(
+                                             wcs_describe_coverage_uri)
+                if wcs_describe_coverage_resp_ok:
+                    n_wcs_describe_coverage_ok += 1
+    
+                n_wcs_describe_coverage_uris_tested += 1
 
         # Log stats
+        log.info("+"*46)
+        log.info("Summary")
+        log.info("=======")
+        log.info('{} sub-catalogues tested'.format(n_catalog_refs_tested))
+        log.info('{} sub-catalogues reads failed'.format(
+                            n_catalog_refs_tested - n_catalog_refs_ok))
+        
         log.info('{} WMS endpoints tested'.format(
             n_wms_get_capabilities_uris_tested))
         log.info('{} WMS GetCapabilities calls succeeded'.format(
@@ -221,7 +252,8 @@ class OgcTdsValidation:
             n_wms_get_capabilities_uris_tested - n_wms_get_capabilities_ok))
         log.info('{} WMS GetMap endpoints tested'.format(
             n_wms_get_map_uris_tested))
-        log.info('{} WMS GetMap calls succeeded'.format(n_wms_get_map_ok))
+        log.info('{} WMS GetMap calls succeeded'.format(
+                            n_wms_get_map_uris_tested))
         log.info('{} WMS GetMap calls failed'.format(
                             n_wms_get_map_uris_tested - n_wms_get_map_ok))
 
@@ -238,20 +270,26 @@ class OgcTdsValidation:
                             n_wcs_describe_coverage_ok))
         log.info('{} WCS DescribeCoverage calls failed'.format(
             n_wcs_describe_coverage_uris_tested - n_wcs_describe_coverage_ok))
-
+           
     @classmethod
-    def get_wms_uri_from_catalog(cls, catalog_uri):
-        '''Get catalogue from given URI and extract the first WMS endpoint
+    def get_wms_uri_from_catalog(cls, catalog_uri, catalog_elem=None):
+        '''Get catalogue from given URI or ElementTree element and extract the 
+        first WMS endpoint
+        
+        If catalog_elem is set, then required info is parsed from this
         '''
+        if catalog_elem is None:
+            catalog_elem = cls.read_catalog(catalog_uri)
+            
         base_prefix = get_base_uri(catalog_uri)
-
-        catalog_ref_resp = requests.get(catalog_uri)
-        catalog_elem = ET.fromstring(catalog_ref_resp.text)
-
+         
         wms_service_elem = catalog_elem.findall(
             "{http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/"
             "v1.0}service[@serviceType='WMS']")
-
+        if len(wms_service_elem) == 0:
+            log.info("No WMS endpoint for catalogue {!r}".format(catalog_uri))
+            return None
+        
         wms_base_path = wms_service_elem[0].attrib['base']
         wms_base_uri = base_prefix + wms_base_path
 
@@ -329,18 +367,24 @@ class OgcTdsValidation:
         return get_map_resp.ok
 
     @classmethod
-    def get_wcs_uri_from_catalog(cls, catalog_uri):
+    def get_wcs_uri_from_catalog(cls, catalog_uri, catalog_elem=None):
         '''Get catalogue from given URI and extract the first WCS endpoint
+        Return None if no WCS endpoint is found
+         
+        If catalog_elem is set, then required info is parsed from this
         '''
+        if catalog_elem is None:
+            catalog_elem = cls.read_catalog(catalog_uri)
+            
         base_prefix = get_base_uri(catalog_uri)
-
-        catalog_ref_resp = requests.get(catalog_uri)
-        catalog_elem = ET.fromstring(catalog_ref_resp.text)
 
         wcs_service_elem = catalog_elem.findall(
             "{http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/"
             "v1.0}service[@serviceType='WCS']")
-
+        if len(wcs_service_elem) == 0:
+            log.info("No WCS endpoint for catalogue {!r}".format(catalog_uri))
+            return None
+                
         wcs_base_path = wcs_service_elem[0].attrib['base']
         wcs_base_uri = "{}{}".format(base_prefix, wcs_base_path)
 
