@@ -19,7 +19,7 @@ def main():
 
     # Suppress requests logging
     requests_logger = logging.getLogger(
-                                    'requests.packages.urllib3.connectionpool')
+                                'requests.packages.urllib3.connectionpool')
     requests_logger.setLevel(logging.WARNING)
 
     if len(sys.argv) < 2:

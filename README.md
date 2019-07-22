@@ -45,10 +45,19 @@ summary of successes and failures at the end.
 ceda_tds_ogc_scan <URI to TDS catalogue path to scan> (<list of catalogue entries to test>|<test n random sample of entries from the catalogue>)
 ```
 
-For example,
-
+Test all entries in a catalogue:
 ```
 ceda_tds_ogc_scan http://my-thredds-data-server/catalog.xml
+```
+
+Test 5 entries at random:
+```
+ceda_tds_ogc_scan http://my-thredds-data-server/catalog.xml 5
+```
+
+Run tests on specific catalogue references
+```
+ceda_tds_ogc_scan http://my-thredds-data-server/catalog.xml http://my-thredds-data-server/catalogRef1.xml http://my-thredds-data-server/catalogRef2.xml
 ```
 
 ## Nagios + Slack scripts
