@@ -85,7 +85,7 @@ if __name__ == '__main__':
     import os
     catalog_uri = (
         os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI') or
-        'https://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
+        'https://cci-odp-data.ceda.ac.uk/thredds/esacci/catalog.xml'
     )
      
     TdsWmsTestCase = tds_wms_testcase_factory(catalog_uri)

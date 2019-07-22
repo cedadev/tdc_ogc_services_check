@@ -47,7 +47,7 @@ class TdsWcsUnittestMethodFactory:
 
         (
             wcs_get_capabilities_resp_ok,
-            layer_names
+            _
         ) = OgcTdsValidation.check_wcs_get_capabilities_resp(
                                                 wcs_get_capabilities_uri)
         if not wcs_get_capabilities_resp_ok:
@@ -59,7 +59,7 @@ class TdsWcsUnittestMethodFactory:
 
         (
             wcs_describe_coverage_resp_ok,
-            layer_names
+            _
         ) = OgcTdsValidation.check_wcs_describe_coverage_resp(
                                                     wcs_describe_coverage_uri)
         if not wcs_describe_coverage_resp_ok:
@@ -80,7 +80,7 @@ def tds_wcs_testcase_factory(catalog_uri):
 if __name__ == '__main__':
     import os
     catalog_uri = (os.getenv('CEDA_TDS_OGC_SCAN_CATALOG_URI') or
-        'https://cci-odp-data.cems.rl.ac.uk/thredds/catalog.xml'
+        'https://cci-odp-data.ceda.ac.uk/thredds/esacci/catalog.xml'
     )
 
     TdsWcsTestCase = tds_wcs_testcase_factory(catalog_uri)

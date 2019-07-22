@@ -167,8 +167,8 @@ class OgcTdsValidation:
                 continue
 
             log.info("+"*46)
-            log.info("Testing catalogue reference URI "
-                     "{!r}".format(catalog_ref_uri))
+            log.info("Testing catalogue reference URI {!r}".format(
+                                                            catalog_ref_uri))
 
             n_catalog_refs_tested += 1
             
