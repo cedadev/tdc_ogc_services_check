@@ -38,7 +38,9 @@ Nb. ordering for picking up other dependent packages from CEDA Github.
 There are three different scripts that can be run.
 
 ## Scan TDS Catalogue and find and test WMS and WCS services
-
+This script crawls the whole catalogue and carries out basic tests on all the 
+WMS and WCS endpoints it finds.  It reports using `logging` and outputs a
+summary of successes and failures at the end.
 ```
 ceda_tds_ogc_scan <URI to TDS catalogue path to scan> (<list of catalogue entries to test>|<test n random sample of entries from the catalogue>)
 ```
@@ -50,8 +52,10 @@ ceda_tds_ogc_scan http://my-thredds-data-server/catalog.xml
 ```
 
 ## Nagios + Slack scripts
-There are two scripts written for running in Nagios.  These also have 
-capability for writing to a Slack channel given the correct Slack API hooks
+There are two scripts written for running in Nagios.  They give an output
+message and the appropriate Nagios exit code depending on the outcome of the
+test.  These also have capability for writing to a Slack channel given the 
+correct Slack API hooks.
 
 Set the environment variable `CEDA_TDS_OGC_SCAN_CATALOG_URI` to configure the
 THREDDS catalogue to be queried.
