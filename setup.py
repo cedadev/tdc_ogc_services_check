@@ -30,7 +30,7 @@ Data server catalogue
     url =             	'https://github.com/cedadev/tds_ogc_services_check',
     platforms =         ['POSIX', 'Linux', 'Windows'],
     install_requires =  ['requests', 'six', 'ceda-unittest-nagios-wrapper',
-                         'cedadev-slack-logging-handler'],
+                         'slack-logging-handler'],
     license =           __license__,
     test_suite =        '',
     packages =          find_packages(),
