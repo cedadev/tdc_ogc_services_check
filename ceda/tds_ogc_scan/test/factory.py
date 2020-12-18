@@ -15,12 +15,13 @@ class ThreddsCatalogUnittestCaseFactory:
     '''Create a unittest case class for testing endpoints from a THREDDS
     catalogue
     '''
-    def __init__(self, catalog_uri, unittest_method_factory):
+    def __init__(self, catalog_uri, unittest_method_factory, method_extension=None):
         '''Provide the URI to the THREDDS catalogue + a unit test method
         factory which generates the tests needed
         '''
         self.catalog_uri = catalog_uri
         self.unittest_method_factory = unittest_method_factory
+        self.method_extension = method_extension
 
     def _gen_unittest_methods(self):
         '''Make a list of unittest methods based on contents of a THREDDS 
@@ -39,7 +40,10 @@ class ThreddsCatalogUnittestCaseFactory:
         _attr = {}
         method_factories = self._gen_unittest_methods()
         for i, unittest_method in enumerate(method_factories, start=1):
-            _attr['test_{:03d}'.format(i)] = unittest_method
+            method_extension = ''
+            if self.method_extension is not None:
+                method_extension = '_{}'.format(self.method_extension)
+            _attr['test_{:03d}{}'.format(i, method_extension)] = unittest_method
 
         TdsCatalogServiceTestCase = type('TdsCatalogServiceTestCase',
                                          (unittest.TestCase, ), _attr)

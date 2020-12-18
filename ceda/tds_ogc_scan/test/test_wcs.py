@@ -73,7 +73,8 @@ def tds_wcs_testcase_factory(catalog_uri):
     '''Create TDS WCS TestCase class'''
     unittest_case_factory = ThreddsCatalogUnittestCaseFactory(
                                                 catalog_uri,
-                                                TdsWcsUnittestMethodFactory)
+                                                TdsWcsUnittestMethodFactory,
+                                                method_extension='wcs')
     return unittest_case_factory()
     
         
